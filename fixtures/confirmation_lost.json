@@ -1,0 +1,14 @@
+{
+  "name": "confirmation_lost",
+  "run_id": "run-confirmation_lost",
+  "sources": [
+    "/tasks"
+  ],
+  "options": {
+    "form_outcome": "commit_then_timeout",
+    "rule_version": 1,
+    "resume": true
+  },
+  "fixture_root": "fixtures",
+  "portal_database": "portal.sqlite3"
+}

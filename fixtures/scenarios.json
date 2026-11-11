@@ -1,0 +1,93 @@
+[
+  {
+    "name": "confirmation_lost",
+    "run_id": "run-confirmation_lost",
+    "sources": [
+      "/tasks"
+    ],
+    "options": {
+      "form_outcome": "commit_then_timeout",
+      "rule_version": 1,
+      "resume": true
+    },
+    "expected": {
+      "jobs": [
+        {
+          "id": "D1",
+          "state": "confirmed"
+        },
+        {
+          "id": "D2",
+          "state": "needs_input"
+        }
+      ],
+      "form_submissions": 1
+    }
+  },
+  {
+    "name": "manual",
+    "run_id": "run-manual",
+    "sources": [
+      "/tasks"
+    ],
+    "options": {
+      "form_outcome": "commit_then_timeout",
+      "rule_version": 1,
+      "hide_receipt": true,
+      "resume": true
+    },
+    "expected": {
+      "jobs": [
+        {
+          "id": "D1",
+          "state": "manual",
+          "reason": "unverifiable_commit"
+        }
+      ],
+      "form_submissions": 1
+    }
+  },
+  {
+    "name": "pause",
+    "run_id": "run-pause",
+    "sources": [
+      "/tasks"
+    ],
+    "options": {
+      "form_outcome": "success",
+      "rule_version": 1,
+      "pause_before_submit": true
+    },
+    "expected": {
+      "jobs": [
+        {
+          "id": "D1",
+          "state": "prepared"
+        }
+      ],
+      "form_submissions": 0
+    }
+  },
+  {
+    "name": "new_rules",
+    "run_id": "run-new_rules",
+    "sources": [
+      "/tasks"
+    ],
+    "options": {
+      "form_outcome": "success",
+      "rule_version": 1,
+      "resume": true,
+      "next_rule_version": 2
+    },
+    "expected": {
+      "jobs": [
+        {
+          "id": "D1",
+          "state": "confirmed"
+        }
+      ],
+      "form_submissions": 1
+    }
+  }
+]

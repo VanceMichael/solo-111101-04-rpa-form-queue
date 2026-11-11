@@ -1,0 +1,11 @@
+{
+  "/tasks": [
+    {
+      "status": 200,
+      "file": "tasks.json",
+      "headers": {
+        "ETag": "v1"
+      }
+    }
+  ]
+}

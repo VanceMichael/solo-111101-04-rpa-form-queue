@@ -1,0 +1,15 @@
+{
+  "name": "new_rules",
+  "run_id": "run-new_rules",
+  "sources": [
+    "/tasks"
+  ],
+  "options": {
+    "form_outcome": "success",
+    "rule_version": 1,
+    "resume": true,
+    "next_rule_version": 2
+  },
+  "fixture_root": "fixtures",
+  "portal_database": "portal.sqlite3"
+}

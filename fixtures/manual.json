@@ -1,0 +1,15 @@
+{
+  "name": "manual",
+  "run_id": "run-manual",
+  "sources": [
+    "/tasks"
+  ],
+  "options": {
+    "form_outcome": "commit_then_timeout",
+    "rule_version": 1,
+    "hide_receipt": true,
+    "resume": true
+  },
+  "fixture_root": "fixtures",
+  "portal_database": "portal.sqlite3"
+}

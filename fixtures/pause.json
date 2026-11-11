@@ -1,0 +1,14 @@
+{
+  "name": "pause",
+  "run_id": "run-pause",
+  "sources": [
+    "/tasks"
+  ],
+  "options": {
+    "form_outcome": "success",
+    "rule_version": 1,
+    "pause_before_submit": true
+  },
+  "fixture_root": "fixtures",
+  "portal_database": "portal.sqlite3"
+}

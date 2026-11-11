@@ -1,0 +1,1 @@
+[{"version": 1, "required": ["supplier", "amount"]}, {"version": 2, "required": ["supplier", "amount", "tax_id"]}]
