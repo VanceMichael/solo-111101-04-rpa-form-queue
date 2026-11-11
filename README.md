@@ -1,6 +1,6 @@
 # 表单录入队列的断点与人工接管
 
-离线采集工程使用 Python 标准库和 SQLite。adapter 读取本项目的真实来源格式，sources 提供可重复响应序列，capture 原子归档解析后的来源记录。已有 --capture 只记录原始观察，不作业务投影；--run 工作流是待扩展功能。
+离线采集工程使用 Python 标准库和 SQLite。adapter 读取本项目的真实来源格式，sources 提供可重复响应序列，capture 原子归档解析后的来源记录。已有 --capture 只记录原始观察，不作业务投影；--run 工作流已实现：为每条申报维护可恢复的执行阶段、提交前后证据与人工接管原因。
 
 ## 环境与准备
 
@@ -37,6 +37,30 @@ FixtureTransport 每次进程创建从 routes.json 首条响应开始，同一�
 
 场景文件含 name、run_id、sources（有序根来源）、options、fixture_root；name 只作日志标签。expected 是公开最小预期，产品不应读取它。所有来源和选项应独立支持；四个场景不能替代全部边界测试。业务结果投影：jobs（含 id、state、reason、rule_version、提交前后 evidence）、form_submissions（替身库真实行数）、receipts、handoffs。数组顺序不影响检查，公开预期数组是子集，但空数组要求确实为空。内部 SQLite 表、架构和调度实现由开发者选择。每个场景在同一状态库上用两个独立进程执行，以检查重启和重复输入；业务投影应保持一致，notifications 为数量时表示此次新建通知数，第二次应为0，为数组时表示持久化待处理通知清单。
 
+## 分步运行、暂停与恢复
+
+执行阶段持久化在 --database：received → prepared → submitting → confirmed；needs_input 是提交前的字段校验分流，submit_unverified/manual 是提交后的不确定分流，两类绝不互相转换。jobs 的 evidence.pre_submit / evidence.post_submit 分别保存提交前后证据；handoffs 是待人工接管清单（含原因），receipts 是已确认回执。
+
+```sh
+# 1) 暂停：只准备不提交（fixtures/pause.json 自带暂停选项；任意场景可用 --pause-before-submit 强制）
+python3 -m collector_04.cli --run fixtures/confirmation_lost.json --database collector_04.sqlite3 --output out.json --pause-before-submit
+#    → D1 prepared、D2 needs_input，form_submissions=0
+# 2) 解除暂停继续：提交后超时（commit_then_timeout），恢复阶段新建执行对象 lookup 核对后确认
+python3 -m collector_04.cli --run fixtures/confirmation_lost.json --database collector_04.sqlite3 --output out.json
+#    → D1 confirmed（receipts[0].via=lookup），portal.sqlite3 仅 1 行
+# 3) 重启后重复执行：已确认任务绝不重录，投影保持一致
+python3 -m collector_04.cli --run fixtures/confirmation_lost.json --database collector_04.sqlite3 --output out.json
+#    → form_submissions 仍为 1
+# 4) 查询最终处理清单（不执行流程，portal 路径取状态库记录，可用 --portal-database 覆盖）
+python3 -m collector_04.cli --database collector_04.sqlite3 --status
+```
+
+--pause-before-submit / --no-pause-before-submit 与 --resume / --no-resume 覆盖场景 options；不传时以场景文件为准。判断是否重录可对投影的 form_submissions 与 portal.sqlite3 实际行数：`python3 -c "import sqlite3; print(sqlite3.connect('portal.sqlite3').execute('SELECT count(*) FROM submissions').fetchone()[0])"`。恢复语义由独立进程测试覆盖：
+
+```sh
+python3 -m unittest tests.test_process_recovery -v
+```
+
 ## 验收与正式展示
 
 ```sh
@@ -44,4 +68,4 @@ python3 acceptance/check.py --contracts-only
 python3 acceptance/check.py
 ```
 
-contracts-only 仅检查材料结构，不能当成功能验收。第二条在初始版本会因尚无 --run 而失败，这是待开发功能的验收入口，不属于基线测试。完成开发后应四个场景均 PASS；每个场景独立临时目录，执行两次、每次进程超时5秒，八次总预算40秒，无固定 sleep。正式展示从干净状态执行基线测试和第二条命令，预算小于90秒；依赖和镜像预先准备，不能用旧日志代替运行。请另加参数变化及边界回归，不修改预期来迁就实现。
+contracts-only 仅检查材料结构，不能当成功能验收。第二条是功能验收入口：四个场景均应 PASS；每个场景独立临时目录，执行两次、每次进程超时5秒，八次总预算40秒，无固定 sleep。正式展示从干净状态执行基线测试和第二条命令，预算小于90秒；依赖和镜像预先准备，不能用旧日志代替运行。参数变化及边界回归见 tests/test_scheduler.py 与 tests/test_process_recovery.py（独立进程恢复），不修改预期来迁就实现。
